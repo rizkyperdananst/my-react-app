@@ -2,42 +2,51 @@ import { Fragment, useEffect, useState } from "react";
 import Button from "../components/Elements/Button";
 import CardProduct from "../components/Fragments/CardProduct";
 import Counter from "../components/Fragments/Counter";
+import { getProducts } from "../services/product.service";
 
-const products = [
-     {
-          id: 1,
-          name: "Sepatu Baru",
-          price: 1500000,
-          image: "/images/shoes-1.jpg",
-          description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae amet consequuntur eos mollitia fugiat, deserunt quam voluptatum suscipit vero dolores placeat deleniti ratione ea magni minus, enim cupiditate odit perferendis.",
-     },
-     {
-          id: 2,
-          name: "Sepatu Lama",
-          price: 700000,
-          image: "/images/shoes-1.jpg",
-          description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae amet consequuntur eos mollitia fugiat, deserunt quam voluptatum suscipit vero dolores placeat deleniti ratione ea magni minus, enim cupiditate odit perferendis.",
-     },
-     {
-          id: 3,
-          name: "Sepatu Seken",
-          price: 900000,
-          image: "/images/shoes-1.jpg",
-          description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae amet consequuntur eos mollitia fugiat, dese runt quam voluptatum suscipit vero dolores placeat deleniti ratione ea magni minus, enim cupiditate odit perferendis.",
-     },
-];
+// const products = [
+//      {
+//           id: 1,
+//           name: "Sepatu Baru",
+//           price: 1500000,
+//           image: "/images/shoes-1.jpg",
+//           description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae amet consequuntur eos mollitia fugiat, deserunt quam voluptatum suscipit vero dolores placeat deleniti ratione ea magni minus, enim cupiditate odit perferendis.",
+//      },
+//      {
+//           id: 2,
+//           name: "Sepatu Lama",
+//           price: 700000,
+//           image: "/images/shoes-1.jpg",
+//           description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae amet consequuntur eos mollitia fugiat, deserunt quam voluptatum suscipit vero dolores placeat deleniti ratione ea magni minus, enim cupiditate odit perferendis.",
+//      },
+//      {
+//           id: 3,
+//           name: "Sepatu Seken",
+//           price: 900000,
+//           image: "/images/shoes-1.jpg",
+//           description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae amet consequuntur eos mollitia fugiat, dese runt quam voluptatum suscipit vero dolores placeat deleniti ratione ea magni minus, enim cupiditate odit perferendis.",
+//      },
+// ];
 
 const email = localStorage.getItem('email');
 
 const ProductsPage = () => {
      const [cart, setCart] = useState([]);
      const [totalPrice, setTotcalPrice] = useState(0);
+     const [products, setProducts] = useState([]);
+
      useEffect(() => {
           setCart(JSON.parse(localStorage.getItem("cart")) || []);
      }, []);
 
      useEffect(() => {
-          if(cart.length > 0) {
+          getProducts((data) => {
+               setProducts(data);
+          });
+     }, []);
+
+     useEffect(() => {
+          if(products.length > 0 && cart.length > 0) {
                const sum = cart.reduce((acc, item) => {
                     const product = products.find((product) => product.id === item.id);
                     return acc + product.price * item.qty;
@@ -45,7 +54,7 @@ const ProductsPage = () => {
                setTotcalPrice(sum);
                localStorage.setItem("cart", JSON.stringify(cart));
           }
-     }, [cart]);
+     }, [cart, products]);
 
      const handleLogout = () => {
           localStorage.removeItem('email');
@@ -80,19 +89,19 @@ const ProductsPage = () => {
                     {email}
                     <button className="bg-black p-2 ml-2" onClick={handleLogout}>Logout</button>
                </div>
-               <div className="flex justify-center py-5">
-                    <div className="w-4/6 flex">
-                         {products.map((product) => (
+               <div className="flex justify-center flex-wrap py-5">
+                    <div className="w-4/6 flex flex-wrap">
+                         {products.length > 0 && products.map((product) => (
                               <CardProduct key={product.id}>
                                    <CardProduct.Header image={product.image} />
-                                   <CardProduct.Body name={product.name}>
+                                   <CardProduct.Body name={product.title}>
                                         {product.description}
                                    </CardProduct.Body>
                                    <CardProduct.Footer price={product.price} id={product.id} handleAddToCart={handleAddToCart} />
                               </CardProduct>
                          ))}
                     </div>
-                    <div className="w-2/6">
+                    <div className="w-2/6 ">
                          <h1 className="text-3xl font-bold text-blue-600 ml-5 mb-2">Cart</h1>
                          {/* <ul>
                               {cart.map((item) => (
@@ -109,21 +118,21 @@ const ProductsPage = () => {
                                    </tr>
                               </thead>
                               <tbody>
-                                   {cart.map((item) => {
+                                   {products.length > 0 && cart.map((item) => {
                                         const product = products.find((product) => product.id === item.id);
                                         return (
                                              <tr>
-                                                  <td>{product.name}</td>
+                                                  <td>{product.title.substring(0, 10)}...</td>
                                                   {/* <td>{product.price}</td> */}
-                                                  <td>Rp{" "} {product.price.toLocaleString("id-ID", { styles: "currency", currency: "IDR" })}</td>
+                                                  <td>Rp{" "} {product.price.toLocaleString("id-ID", { styles: "currency", currency: "USD" })}</td>
                                                   <td>{item.qty}</td>
-                                                  <td>Rp {(item.qty * product.price).toLocaleString("id-ID", { styles: "currency", currency: "IDR" })}</td>
+                                                  <td>$ {(item.qty * product.price).toLocaleString("id-ID", { styles: "currency", currency: "USD" })}</td>
                                              </tr>
                                         );
                                    })}
                                    <tr>
                                         <td colSpan={3}><b>Total Price</b></td>
-                                        <td><b>Rp{" "} {totalPrice.toLocaleString("id-ID", { styles: "currency", currency: "IDR" })}</b></td>
+                                        <td><b>${" "} {totalPrice.toLocaleString("id-ID", { styles: "currency", currency: "USD" })}</b></td>
                                    </tr>
                               </tbody>
                          </table>
