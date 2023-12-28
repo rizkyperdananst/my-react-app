@@ -3,6 +3,8 @@ import Button from "../components/Elements/Button";
 import CardProduct from "../components/Fragments/CardProduct";
 import Counter from "../components/Fragments/Counter";
 import { getProducts } from "../services/product.service";
+import { getUsername } from "../services/auth.service";
+import { useLogin } from "../hooks/useLogin";
 
 // const products = [
 //      {
@@ -28,16 +30,26 @@ import { getProducts } from "../services/product.service";
 //      },
 // ];
 
-const email = localStorage.getItem('email');
-
 const ProductsPage = () => {
      const [cart, setCart] = useState([]);
      const [totalPrice, setTotcalPrice] = useState(0);
      const [products, setProducts] = useState([]);
+     // const [username, setUsername] = useState("");
+     const username = useLogin();
 
      useEffect(() => {
           setCart(JSON.parse(localStorage.getItem("cart")) || []);
      }, []);
+
+     // useEffect(() => {
+     //      // getUsername(token);
+     //      const token = localStorage.getItem('token');
+     //      if (token) {
+     //           setUsername(getUsername(token));
+     //      } else {
+     //           window.location.href = "/login";
+     //      }
+     // }, []);
 
      useEffect(() => {
           getProducts((data) => {
@@ -57,8 +69,8 @@ const ProductsPage = () => {
      }, [cart, products]);
 
      const handleLogout = () => {
-          localStorage.removeItem('email');
-          localStorage.removeItem('password');
+          localStorage.removeItem('token');
+          // localStorage.removeItem('password');
           window.location.href = "/login";
      }
 
@@ -86,7 +98,7 @@ const ProductsPage = () => {
           // Bisa menggunakan div kosong atau fragment
           <Fragment>
                <div className="flex justify-end h-20 bg-blue-600 text-white items-center px-10">
-                    {email}
+                    {username}
                     <button className="bg-black p-2 ml-2" onClick={handleLogout}>Logout</button>
                </div>
                <div className="flex justify-center flex-wrap py-5">
